@@ -10,10 +10,11 @@ venv/
 # Secrets / config
 .env
 
-# Data & weights (большие, не в git)
-data/
-ICDAR-2019-SROIE/
-weights/
+# Data & weights (большие, не в git).
+# Ведущий слеш = только в корне репозитория, иначе шаблон ловит и src/data/!
+/data/
+/ICDAR-2019-SROIE/
+/weights/
 notebooks/figures/
 # Картинки в notebooks (в т.ч. *_files/ от экспорта)
 notebooks/**/*.png
