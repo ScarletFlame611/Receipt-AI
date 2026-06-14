@@ -1,0 +1,77 @@
+# ---------------------------------------------------------------------------
+# Receipt-AI — полный стек: PostgreSQL + FastAPI-бэкенд (ML) + React/nginx.
+#
+# Запуск:
+#   cp .env.example .env        # при необходимости поправьте секреты
+#   docker compose up --build
+#
+# Открыть: http://localhost:8080  (фронт + проксируемый API)
+# Swagger бэкенда напрямую: http://localhost:8000/docs
+#
+# Переменные можно переопределить через окружение или файл .env, например:
+#   JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, POSTGRES_PASSWORD.
+# ---------------------------------------------------------------------------
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-receipt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-receipt}
+      POSTGRES_DB: ${POSTGRES_DB:-receipt_ai}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-receipt} -d ${POSTGRES_DB:-receipt_ai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-receipt}:${POSTGRES_PASSWORD:-receipt}@db:5432/${POSTGRES_DB:-receipt_ai}
+      JWT_SECRET: ${JWT_SECRET:-change-me-to-a-long-random-string}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      PASSWORD_HASH_SCHEME: ${PASSWORD_HASH_SCHEME:-argon2}
+      UPLOAD_DIR: ./data/uploads
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-15}
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-console}
+      CONFIGS_DIR: ./configs
+      # Бутстрап администратора при первом старте (опционально):
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      # Веса моделей (большие, не в git) — отдаём из хоста только на чтение.
+      - ./weights:/app/weights:ro
+      # Загрузки чеков и БД-файл (для SQLite-режима) — персистентно.
+      - ./data:/app/data
+      # Кэш HuggingFace/Surya — чтобы не качать модели при каждом пересоздании.
+      - hf_cache:/app/.cache/huggingface
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  pgdata:
+  hf_cache:

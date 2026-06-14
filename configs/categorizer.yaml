@@ -1,0 +1,30 @@
+# Категоризация трат — лёгкий BERT (Блок 6).
+categorizer:
+  base_model: "bert-base-multilingual-cased"
+  weights_path: "weights/categorizer"
+  max_length: 128
+
+  # Справочник классов. В БД хранится таблица categories (с цветами),
+  # здесь — метки для модели; порядок = индексам классов.
+  labels:
+    - "Продукты"
+    - "Кафе и рестораны"
+    - "Транспорт"
+    - "Аптека"
+    - "Развлечения"
+    - "Прочее"
+
+  inference:
+    device: "auto"
+    confidence_threshold: 0.45    # ниже порога → fallback на правила
+
+  train:
+    epochs: 10
+    batch_size: 16
+    lr: 2.0e-5
+    weight_decay: 0.01
+    fp16: true
+    checkpoint_dir: "/content/drive/MyDrive/receipt-ai/checkpoints/categorizer"
+
+  targets:
+    macro_f1: 0.80

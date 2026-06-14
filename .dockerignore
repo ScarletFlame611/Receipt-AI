@@ -1,0 +1,48 @@
+# --- Виртуальные окружения / кэши Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Большие артефакты: монтируются томами, в образ не кладём ---
+data/
+weights/
+ICDAR-2019-SROIE/
+notebooks/
+*.pt
+*.ckpt
+*.pth
+*.safetensors
+
+# --- Примеры изображений в корне (не нужны рантайму) ---
+*.jpg
+*.jpeg
+*.png
+
+# --- Фронтенд: собирается своим Dockerfile ---
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# --- Секреты / локальное ---
+.env
+
+# --- Git / IDE / ОС ---
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+
+# --- Docker-файлы сами в контекст не нужны ---
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# --- Документация ---
+docs/
+README.md

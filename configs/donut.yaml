@@ -1,0 +1,44 @@
+# Извлечение полей чека — схема Б+В (Блок 5).
+# Поля (магазин/дата/адрес/сумма) — дообученная на SROIE модель.
+# Позиции (items) — исходная CORD-модель из коробки.
+donut:
+  base_model: "naver-clova-ix/donut-base-finetuned-cord-v2"
+
+  # --- Поля: наша дообученная на SROIE модель ---
+  fields:
+    weights_path: "weights/donut_sroie"
+    task_prompt: "<s_sroie>"
+    max_length: 512                  # как при обучении (ноутбук 03)
+    field_order: ["company", "date", "address", "total"]
+
+  # --- Позиции: исходная CORD-модель, без дообучения ---
+  items:
+    task_prompt: "<s_cord-v2>"
+    max_length: 768
+
+  # Родной размер входа предобученной модели. НЕ менять: часть весов
+  # энкодера привязана к нему (обоснование в ноутбуке 00).
+  image_size: [1280, 960]
+
+  inference:
+    num_beams: 1
+    device: "auto"                   # auto | cpu | cuda
+
+  # Гиперпараметры дообучения SROIE (обучение — в ноутбуке notebooks/03_train_donut)
+  train:
+    epochs: 15                        # фактически обучали 15 (ноутбук 03), не 30
+    batch_size: 2
+    grad_accum_steps: 4               # в ноутбуке 03 было 4, не 8
+    lr: 3.0e-5
+    weight_decay: 0.01
+    warmup_steps: 300
+    fp16: true
+    checkpoint_dir: "/content/drive/MyDrive/receipt-ai/checkpoints/donut_sroie"
+    save_every_steps: 200
+    resume_from_checkpoint: true
+
+  # Целевые ориентиры (ТЗ, разд. 12.4)
+  targets:
+    field_accuracy_total: 0.85
+    field_accuracy_merchant: 0.80
+    field_accuracy_date: 0.80

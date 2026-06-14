@@ -1,0 +1,32 @@
+# --- Backend ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+sqlalchemy==2.0.36
+pydantic==2.10.4
+pydantic-settings==2.7.0
+alembic==1.14.0
+psycopg2-binary==2.9.10
+python-multipart==0.0.20
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+argon2-cffi==23.1.0
+PyYAML==6.0.2
+python-dotenv==1.0.1
+
+# --- Inference (CPU-ok) ---
+torch==2.5.1
+transformers==4.49.0
+sentencepiece==0.2.0
+pillow==11.0.0
+pillow-heif==0.21.0
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+ultralytics==8.3.55
+# OCR-движок для русских чеков. Его пины opencv/pillow конфликтуют с
+# pin'ами проекта (opencv 4.10 от roboflow, pillow 11.0), но по факту Surya
+# на них работает, поэтому ставить без зависимостей:
+#   pip install --no-deps surya-ocr==0.13.1
+surya-ocr==0.13.1  # установка: pip install --no-deps surya-ocr==0.13.1
+
+# --- Utils ---
+python-dateutil==2.9.0

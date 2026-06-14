@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secrets / config
+.env
+
+# Data & weights (большие, не в git)
+data/
+ICDAR-2019-SROIE/
+weights/
+notebooks/figures/
+# Картинки в notebooks (в т.ч. *_files/ от экспорта)
+notebooks/**/*.png
+notebooks/**/*.jpg
+notebooks/**/*.jpeg
+notebooks/**/*.md
+
+# Models
+*.pt
+*.ckpt
+*.pth
+*.safetensors
+
+# Frontend
+node_modules/
+frontend/build/
+frontend/dist/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+/docs/thesis-plan.md
+/b50ae6b38ee35f3195c5993caa81530f.jpg
+/main.py
+/sroie_donut.zip
