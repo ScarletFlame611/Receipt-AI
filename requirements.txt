@@ -30,3 +30,5 @@ surya-ocr==0.13.1  # установка: pip install --no-deps surya-ocr==0.13.1
 
 # --- Utils ---
 python-dateutil==2.9.0
+# Докачка дообученных весов с публичного Google Drive (scripts/fetch_weights.py).
+gdown==5.2.0

@@ -1,7 +1,9 @@
 # Категоризация трат — лёгкий BERT (Блок 6).
 categorizer:
   base_model: "bert-base-multilingual-cased"
-  weights_path: "weights/categorizer"
+  # Итоговая модель — обученная на реальных данных OFD (ноутбук 10, версия B).
+  # Синтетическая weights/categorizer (ноутбук 04) — это baseline для сравнения.
+  weights_path: "weights/categorizer_real"
   max_length: 128
 
   # Справочник классов. В БД хранится таблица categories (с цветами),

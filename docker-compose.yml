@@ -49,12 +49,16 @@ services:
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-15}
       EMAIL_BACKEND: ${EMAIL_BACKEND:-console}
       CONFIGS_DIR: ./configs
+      # Автодокачка дообученных весов с публичного Google Drive при первом старте,
+      # если их нет в ./weights (см. docker-entrypoint.sh). Отключить: FETCH_WEIGHTS=0.
+      FETCH_WEIGHTS: ${FETCH_WEIGHTS:-1}
       # Бутстрап администратора при первом старте (опционально):
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     volumes:
-      # Веса моделей (большие, не в git) — отдаём из хоста только на чтение.
-      - ./weights:/app/weights:ro
+      # Веса моделей (большие, не в git). rw — чтобы entrypoint мог докачать
+      # недостающие с Google Drive в ./weights на хосте (FETCH_WEIGHTS).
+      - ./weights:/app/weights
       # Загрузки чеков и БД-файл (для SQLite-режима) — персистентно.
       - ./data:/app/data
       # Кэш HuggingFace/Surya — чтобы не качать модели при каждом пересоздании.
