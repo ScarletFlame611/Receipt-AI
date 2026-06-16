@@ -1,4 +1,4 @@
-"""Единый логгер проекта. Никогда не логирует пароли и токены."""
+"""Единый логгер проекта"""
 from __future__ import annotations
 
 import logging
@@ -12,8 +12,6 @@ _SENSITIVE = re.compile(
 
 
 class RedactFilter(logging.Filter):
-    """Маскирует чувствительные значения в сообщениях логов."""
-
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.msg, str):
             record.msg = _SENSITIVE.sub(r"\1=***", record.msg)
@@ -43,6 +41,5 @@ def setup_logging(level: int = logging.INFO) -> None:
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Возвращает именованный логгер (вызывает setup_logging при первом обращении)."""
     setup_logging()
     return logging.getLogger(name)

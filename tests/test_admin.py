@@ -1,4 +1,4 @@
-"""Тесты админских роутов: доступ, список, блокировка, метрики."""
+"""Тесты админских роутов"""
 from __future__ import annotations
 
 from src.db import models
@@ -26,11 +26,9 @@ def test_admin_block_and_unblock(client, make_user, db_session):
     target = make_user("victim@test.com")
     uid = db_session.query(models.User).filter_by(email="victim@test.com").one().id
 
-    # блокировка -> пользователь теряет доступ
     assert client.post(f"/admin/users/{uid}/block", headers=admin).status_code == 200
     assert client.get("/auth/me", headers=target).status_code == 403
 
-    # разблокировка -> доступ восстановлен (новый токен после реактивации)
     assert client.post(f"/admin/users/{uid}/unblock", headers=admin).status_code == 200
     restored = make_user("victim@test.com")  # повторный логин
     assert client.get("/auth/me", headers=restored).status_code == 200
@@ -48,7 +46,6 @@ def test_admin_block_missing_user_404(client, make_user):
 
 
 def test_admin_metrics(client, make_user, auth_headers, image_upload):
-    # обычный пользователь + один чек
     client.post("/receipts", headers=auth_headers, files=image_upload())
     admin = make_user("admin@test.com", admin=True)
     m = client.get("/admin/metrics", headers=admin).json()

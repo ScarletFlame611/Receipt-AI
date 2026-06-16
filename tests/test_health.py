@@ -1,4 +1,4 @@
-"""Тесты health-check: честно отражает готовность ML-пайплайна."""
+"""Тесты health-check"""
 from __future__ import annotations
 
 import pytest
@@ -13,7 +13,6 @@ class _StubPipeline:
 
 @pytest.fixture
 def reset_pipeline():
-    """Гарантирует чистое состояние синглинга пайплайна вокруг теста."""
     saved = deps._pipeline
     deps._pipeline = None
     yield

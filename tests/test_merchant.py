@@ -1,10 +1,9 @@
-"""Определение магазина по справочнику SHOPS (ReceiptPipeline._guess_merchant)."""
+"""Определение магазина по справочнику SHOPS """
 from src.data.category_data import SHOPS
 from src.models.pipeline import ReceiptPipeline
 
 
 def _pipe():
-    # Без __init__: не грузим детектор/OCR/NER, только готовим known_shops
     p = object.__new__(ReceiptPipeline)
     shops = {s for ss in SHOPS.values() for s in ss}
     p.known_shops = sorted(shops, key=len, reverse=True)
@@ -16,7 +15,6 @@ def _lines(*texts):
 
 
 def test_merchant_resolved_from_dictionary_despite_ocr_typo():
-    # Первая строка искажена OCR (АО→АП), но "Магнит" находится по справочнику
     p = _pipe()
     lines = _lines('АП "Тандер', "МАГНИТ-Руанн", "КАССОВЫЙ ЧЕК")
     assert p._guess_merchant(lines) == "Магнит"
@@ -35,7 +33,6 @@ def test_merchant_fallback_to_first_line_when_unknown_shop():
 
 
 def test_no_false_match_inside_longer_word():
-    # "лента" не должна находиться внутри "валентина" (граница слова)
     p = _pipe()
     lines = _lines("Продавец Валентина", "ООО Ромашка")
     assert p._guess_merchant(lines) == "Продавец Валентина"

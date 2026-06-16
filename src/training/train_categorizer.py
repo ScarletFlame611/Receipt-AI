@@ -1,5 +1,4 @@
-# Обучение категоризатора трат: multilingual BERT на сигнатурах "магазин. товары".
-# Датасет — синтетический jsonl из src/data/datasets.py. Метрика отбора — macro-F1.
+# Обучение категоризатора трат
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,7 +14,6 @@ def _build_label_maps(labels):
 
 def _encode_split(rows, tokenizer, label2id, max_length):
     from datasets import Dataset
-
     texts = [r["text"] for r in rows]
     label_ids = [label2id[r["label"]] for r in rows]
     ds = Dataset.from_dict({"text": texts, "labels": label_ids})
@@ -28,7 +26,6 @@ def _encode_split(rows, tokenizer, label2id, max_length):
 
 def _compute_metrics(eval_pred):
     from sklearn.metrics import accuracy_score, f1_score
-
     logits, labels = eval_pred
     preds = np.argmax(logits, axis=-1)
     return {
@@ -38,16 +35,16 @@ def _compute_metrics(eval_pred):
 
 
 def train_categorizer(
-    data,
-    labels,
-    base_model="bert-base-multilingual-cased",
-    output_dir="runs/categorizer",
-    max_length=128,
-    epochs=10,
-    batch_size=16,
-    lr=2e-5,
-    weight_decay=0.01,
-    fp16=True,
+        data,
+        labels,
+        base_model="bert-base-multilingual-cased",
+        output_dir="runs/categorizer",
+        max_length=128,
+        epochs=10,
+        batch_size=16,
+        lr=2e-5,
+        weight_decay=0.01,
+        fp16=True,
 ):
     from transformers import (
         AutoModelForSequenceClassification,
@@ -103,7 +100,6 @@ def train_categorizer(
 
 def evaluate_on_test(trainer, data, labels, max_length=128):
     from sklearn.metrics import classification_report
-
     tokenizer = trainer.tokenizer
     label2id, _ = _build_label_maps(labels)
     test_ds = _encode_split(data["test"], tokenizer, label2id, max_length)

@@ -1,10 +1,4 @@
 """Создание (или повышение) администратора.
-
-    python scripts/create_admin.py --email admin@receipt-ai.local --password Secret123
-
-Если пользователь с таким email уже есть — выставляет ему is_admin=True и,
-при передаче --password, обновляет пароль. Пароль можно не передавать флагом,
-тогда он будет запрошен интерактивно (без эха).
 """
 from __future__ import annotations
 
@@ -30,11 +24,9 @@ def main() -> None:
     parser.add_argument("--email", required=True, help="Email администратора")
     parser.add_argument("--password", help="Пароль (если не задан — спросим интерактивно)")
     args = parser.parse_args()
-
     password = args.password or getpass.getpass("Пароль администратора: ")
     if not password:
         parser.error("Пароль не может быть пустым")
-
     db = SessionLocal()
     try:
         user = crud.get_user_by_email(db, args.email)

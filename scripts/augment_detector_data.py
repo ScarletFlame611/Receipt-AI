@@ -1,16 +1,13 @@
-"""Офлайн-расширение train-части датасета детекции аугментациями.
-
+"""
 Для каждой исходной картинки train генерируется несколько аугментированных
-копий с синхронно пересчитанными рамками. Результат (оригиналы + копии)
-сохраняется в новый датасет. Valid и test копируются без изменений,
-чтобы оценка качества оставалась честной.
+копий с синхронно пересчитанными рамками. Результат
+сохраняется в новый датасет.
 """
 from __future__ import annotations
 
 import shutil
 import sys
 from pathlib import Path
-
 import cv2
 
 root = Path(__file__).resolve().parent.parent
@@ -20,7 +17,6 @@ from src.data.augmentations import build_augmentation_pipeline, augment
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
 src_dir = root / "data" / "raw" / "detector" / "receipt_4dzvu"
 dst_dir = root / "data" / "processed" / "detector"
 copies_per_image = 4
@@ -54,18 +50,15 @@ def process_train_split(pipeline):
     lbl_out = dst_dir / "train" / "labels"
     img_out.mkdir(parents=True, exist_ok=True)
     lbl_out.mkdir(parents=True, exist_ok=True)
-
     images = sorted(img_in.glob("*.jpg"))
     logger.info("Train: %d исходных картинок", len(images))
 
     for img_path in images:
         bboxes, classes = read_label(lbl_in / (img_path.stem + ".txt"))
         image = cv2.imread(str(img_path))
-
         # Оригинал
         cv2.imwrite(str(img_out / img_path.name), image)
         write_label(lbl_out / (img_path.stem + ".txt"), bboxes, classes)
-
         # Аугментированные копии
         if not bboxes:
             continue
@@ -95,12 +88,9 @@ def copy_split(split):
 def main():
     dst_dir.mkdir(parents=True, exist_ok=True)
     pipeline = build_augmentation_pipeline()
-
     process_train_split(pipeline)
     copy_split("valid")
     copy_split("test")
-
-    # data.yaml с абсолютными путями, чтобы YOLO точно нашла данные
     yaml_text = (
         f"train: {(dst_dir / 'train' / 'images').as_posix()}\n"
         f"val: {(dst_dir / 'valid' / 'images').as_posix()}\n"

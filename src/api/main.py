@@ -1,16 +1,11 @@
-"""Сборка FastAPI-приложения: подключение роутеров, CORS, прогрев пайплайна.
-
-Пайплайн прогревается на старте (кроме тестового окружения), чтобы первый
-запрос загрузки чека не ждал загрузку моделей.
+"""Сборка FastAPI-приложения
 """
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
 from src.api import (
     routes_admin, routes_analytics, routes_auth, routes_meta, routes_receipts,
 )
@@ -24,7 +19,6 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Для sqlite-дев удобно создать таблицы на старте; в проде их ведёт alembic.
     if settings.database_url.startswith("sqlite"):
         Base.metadata.create_all(bind=engine)
     if settings.app_env != "test":
@@ -52,11 +46,6 @@ app.include_router(routes_meta.router)
 
 @app.get("/api/health", tags=["health"])
 def health():
-    """Честный health-check: 200 только если ML-пайплайн загружен.
-
-    Пригодно для Docker healthcheck и отладки — пока модели не прогреты,
-    отдаём 503, чтобы оркестратор не слал трафик на неготовый инстанс.
-    """
     loaded = is_pipeline_loaded()
     body = {
         "status": "ok" if loaded else "loading",

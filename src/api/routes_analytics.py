@@ -1,12 +1,9 @@
-"""Роуты аналитики: сводка трат, разбивка по категориям, динамика, топ
-магазинов, а также бюджеты и цели. Всё изолировано по user_id."""
+"""Роуты аналитики"""
 from __future__ import annotations
 
 from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from src.api.dependencies import CurrentUser, get_db
 from src.db import crud, schemas
 
@@ -34,25 +31,22 @@ def timeline(current_user: CurrentUser, db: Annotated[Session, Depends(get_db)])
 
 @router.get("/top-merchants", response_model=list[schemas.MerchantStat])
 def top_merchants(
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
-    limit: int = 10,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
+        limit: int = 10,
 ):
     return crud.top_merchants(db, current_user.id, limit=limit)
 
 
 @router.get("/top-goods", response_model=list[schemas.GoodStat])
 def top_goods(
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
-    limit: int = 10,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
+        limit: int = 10,
 ):
     return crud.top_goods(db, current_user.id, limit=limit)
 
 
-# --------------------------------------------------------------------------
-# Бюджеты
-# --------------------------------------------------------------------------
 @router.get("/budgets", response_model=list[schemas.BudgetOut])
 def list_budgets(current_user: CurrentUser, db: Annotated[Session, Depends(get_db)]):
     return crud.list_budgets(db, current_user.id)
@@ -60,9 +54,9 @@ def list_budgets(current_user: CurrentUser, db: Annotated[Session, Depends(get_d
 
 @router.post("/budgets", response_model=schemas.BudgetOut, status_code=status.HTTP_201_CREATED)
 def create_budget(
-    payload: schemas.BudgetCreate,
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
+        payload: schemas.BudgetCreate,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
 ):
     return crud.create_budget(
         db, current_user.id,
@@ -74,18 +68,15 @@ def create_budget(
 
 @router.delete("/budgets/{budget_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_budget(
-    budget_id: int,
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
+        budget_id: int,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
 ):
     if not crud.delete_budget(db, current_user.id, budget_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Бюджет не найден")
     return None
 
 
-# --------------------------------------------------------------------------
-# Цели
-# --------------------------------------------------------------------------
 @router.get("/goals", response_model=list[schemas.GoalOut])
 def list_goals(current_user: CurrentUser, db: Annotated[Session, Depends(get_db)]):
     return crud.list_goals(db, current_user.id)
@@ -93,9 +84,9 @@ def list_goals(current_user: CurrentUser, db: Annotated[Session, Depends(get_db)
 
 @router.post("/goals", response_model=schemas.GoalOut, status_code=status.HTTP_201_CREATED)
 def create_goal(
-    payload: schemas.GoalCreate,
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
+        payload: schemas.GoalCreate,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
 ):
     return crud.create_goal(
         db, current_user.id,
@@ -107,10 +98,10 @@ def create_goal(
 
 @router.put("/goals/{goal_id}", response_model=schemas.GoalOut)
 def update_goal(
-    goal_id: int,
-    payload: schemas.GoalUpdate,
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
+        goal_id: int,
+        payload: schemas.GoalUpdate,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
 ):
     goal = crud.update_goal(
         db, current_user.id, goal_id, payload.model_dump(exclude_unset=True)
@@ -122,9 +113,9 @@ def update_goal(
 
 @router.delete("/goals/{goal_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_goal(
-    goal_id: int,
-    current_user: CurrentUser,
-    db: Annotated[Session, Depends(get_db)],
+        goal_id: int,
+        current_user: CurrentUser,
+        db: Annotated[Session, Depends(get_db)],
 ):
     if not crud.delete_goal(db, current_user.id, goal_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Цель не найдена")

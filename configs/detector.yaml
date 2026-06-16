@@ -1,18 +1,17 @@
-# Детекция и выравнивание чека (Блок 3).
+# Детекция и выравнивание чека
 detector:
-  method: "yolo"            # yolo | contour (fallback)
+  method: "yolo"
   weights_path: "weights/detector/best.pt"
   conf_threshold: 0.25
   iou_threshold: 0.45
   input_size: 640
 
-  # Резервный контурный метод (OpenCV)
+  # Резервный контурный метод
   fallback:
     enabled: true
-    min_area_ratio: 0.15    # мин. доля площади кадра, чтобы счесть контур чеком
+    min_area_ratio: 0.15
     canny_low: 50
     canny_high: 150
 
-  # Целевые ориентиры (ТЗ, разд. 12.4)
   targets:
     successful_alignment: 0.90

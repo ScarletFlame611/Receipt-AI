@@ -1,17 +1,3 @@
-# ---------------------------------------------------------------------------
-# Receipt-AI — полный стек: PostgreSQL + FastAPI-бэкенд (ML) + React/nginx.
-#
-# Запуск:
-#   cp .env.example .env        # при необходимости поправьте секреты
-#   docker compose up --build
-#
-# Открыть: http://localhost:8080  (фронт + проксируемый API)
-# Swagger бэкенда напрямую: http://localhost:8000/docs
-#
-# Переменные можно переопределить через окружение или файл .env, например:
-#   JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD, POSTGRES_PASSWORD.
-# ---------------------------------------------------------------------------
-
 services:
   db:
     image: postgres:16-alpine
@@ -49,19 +35,12 @@ services:
       MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-15}
       EMAIL_BACKEND: ${EMAIL_BACKEND:-console}
       CONFIGS_DIR: ./configs
-      # Автодокачка дообученных весов с публичного Google Drive при первом старте,
-      # если их нет в ./weights (см. docker-entrypoint.sh). Отключить: FETCH_WEIGHTS=0.
       FETCH_WEIGHTS: ${FETCH_WEIGHTS:-1}
-      # Бутстрап администратора при первом старте (опционально):
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     volumes:
-      # Веса моделей (большие, не в git). rw — чтобы entrypoint мог докачать
-      # недостающие с Google Drive в ./weights на хосте (FETCH_WEIGHTS).
       - ./weights:/app/weights
-      # Загрузки чеков и БД-файл (для SQLite-режима) — персистентно.
       - ./data:/app/data
-      # Кэш HuggingFace/Surya — чтобы не качать модели при каждом пересоздании.
       - hf_cache:/app/.cache/huggingface
     ports:
       - "8000:8000"

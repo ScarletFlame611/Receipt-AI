@@ -16,12 +16,7 @@ def train_detector(
     name="receipt_yolo",
     device=None,
 ):
-    """Дообучает YOLOv8 на детекцию чека.
-    data_yaml - путь к data.yaml датасета. base_model - предобученные веса. Возвращает
-    объект обученной модели и путь к лучшим весам.
-    """
     from ultralytics import YOLO
-
     model = YOLO(base_model)
     results = model.train(
         data=str(data_yaml),
@@ -34,15 +29,12 @@ def train_detector(
         patience=15,
         plots=True,
     )
-
     best_weights = Path(project) / name / "weights" / "best.pt"
     return model, best_weights
 
 
 def validate_detector(weights, data_yaml, imgsz=640):
-    """Прогоняет валидацию обученной модели, возвращает метрики (mAP, precision, recall)."""
     from ultralytics import YOLO
-
     model = YOLO(str(weights))
     metrics = model.val(data=str(data_yaml), imgsz=imgsz)
     return metrics

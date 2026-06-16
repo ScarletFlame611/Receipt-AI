@@ -1,12 +1,4 @@
-"""Наполнение БД начальными данными: справочник категорий и демо-данные.
-
-Категории берутся из configs/categorizer.yaml (labels) — те же шесть классов,
-на которых обучен категоризатор, иначе связь Item→Category не сойдётся.
-
-Скрипт идемпотентен: повторный запуск не плодит дубли.
-
-    python scripts/seed_db.py            # категории + демо-данные
-    python scripts/seed_db.py --no-demo  # только справочник категорий
+"""Наполнение БД начальными данными
 """
 from __future__ import annotations
 
@@ -28,7 +20,6 @@ from src.utils.logging import get_logger  # noqa: E402
 
 logger = get_logger(__name__)
 
-# Цвета справочника (по порядку категорий категоризатора).
 CATEGORY_COLORS = {
     "Продукты": "#4CAF50",
     "Кафе и рестораны": "#FF9800",
@@ -41,9 +32,7 @@ CATEGORY_COLORS = {
 DEMO_EMAIL = "demo@receipt-ai.local"
 DEMO_PASSWORD = "demo12345"
 
-
 def seed_categories(db) -> dict[str, models.Category]:
-    """Создаёт/обновляет категории из labels категоризатора. Возвращает {name: Category}."""
     labels = get_configs().categorizer.labels
     result: dict[str, models.Category] = {}
     for name in labels:
@@ -53,7 +42,6 @@ def seed_categories(db) -> dict[str, models.Category]:
             db.add(category)
             logger.info("Категория добавлена: %s", name)
         else:
-            # держим цвет в актуальном состоянии
             category.color = CATEGORY_COLORS.get(name, category.color)
         result[name] = category
     db.commit()
@@ -61,9 +49,7 @@ def seed_categories(db) -> dict[str, models.Category]:
         db.refresh(category)
     return result
 
-
 def seed_demo(db, categories: dict[str, models.Category]) -> None:
-    """Демо-пользователь с парой чеков, бюджетом и целью (идемпотентно)."""
     user = db.query(models.User).filter_by(email=DEMO_EMAIL).one_or_none()
     if user is None:
         user = models.User(email=DEMO_EMAIL, password_hash=hash_password(DEMO_PASSWORD))
@@ -71,7 +57,6 @@ def seed_demo(db, categories: dict[str, models.Category]) -> None:
         db.commit()
         db.refresh(user)
         logger.info("Демо-пользователь создан: %s / %s", DEMO_EMAIL, DEMO_PASSWORD)
-
     if db.query(models.Receipt).filter_by(user_id=user.id).count() == 0:
         receipt = models.Receipt(
             user_id=user.id,
@@ -100,7 +85,6 @@ def seed_demo(db, categories: dict[str, models.Category]) -> None:
         ])
         db.commit()
         logger.info("Демо-чек с позициями добавлен")
-
     if db.query(models.Budget).filter_by(user_id=user.id).count() == 0:
         products = categories.get("Продукты")
         db.add(models.Budget(
@@ -111,7 +95,6 @@ def seed_demo(db, categories: dict[str, models.Category]) -> None:
         ))
         db.commit()
         logger.info("Демо-бюджет добавлен")
-
     if db.query(models.Goal).filter_by(user_id=user.id).count() == 0:
         db.add(models.Goal(
             user_id=user.id,
@@ -128,7 +111,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Сидинг БД Receipt-AI")
     parser.add_argument("--no-demo", action="store_true", help="Только категории, без демо-данных")
     args = parser.parse_args()
-
     db = SessionLocal()
     try:
         categories = seed_categories(db)

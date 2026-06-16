@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-
 from src.utils.config import settings
 
 engine = create_engine(

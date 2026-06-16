@@ -1,10 +1,4 @@
 """Метрики качества извлечения полей для модели Donut.
-
-Считаются две вещи:
-  field-level accuracy — доля чеков, где конкретное поле (сумма) извлечено верно,
-    в двух режимах: строгое сравнение строк и сравнение после нормализации в число;
-  TED (Tree Edit Distance) — нормированное расстояние между предсказанной
-    и эталонной структурами, стандартная метрика для Donut.
 """
 from __future__ import annotations
 
@@ -14,11 +8,6 @@ import zss
 
 
 def parse_amount_loose(raw):
-    """Приводит сумму-строку к числу, убирая все разделители.
-
-    Подходит для сравнения 'по числу': и '1,591,600', и '1591600', и '1.591.600'
-    дадут одно и то же целое. Возвращает int или None.
-    """
     if raw is None:
         return None
     digits = re.sub(r"[^\d]", "", str(raw))
@@ -26,7 +15,6 @@ def parse_amount_loose(raw):
 
 
 def get_total(parse):
-    """Достаёт строку итоговой суммы из структуры gt_parse."""
     total = parse.get("total")
     if isinstance(total, dict):
         return total.get("total_price")
@@ -34,11 +22,6 @@ def get_total(parse):
 
 
 def total_accuracy(predictions, references):
-    """Считает точность извлечения суммы в двух режимах.
-
-    predictions, references — списки структур (dict) одинаковой длины.
-    Возвращает словарь с strict (строка в строку) и normalized (число в число).
-    """
     n = len(references)
     strict_hits = 0
     norm_hits = 0
@@ -46,7 +29,6 @@ def total_accuracy(predictions, references):
     for pred, ref in zip(predictions, references):
         pred_total = get_total(pred) if isinstance(pred, dict) else None
         ref_total = get_total(ref)
-
         if pred_total is not None and ref_total is not None:
             if str(pred_total).strip() == str(ref_total).strip():
                 strict_hits += 1
@@ -59,17 +41,13 @@ def total_accuracy(predictions, references):
     }
 
 
-# --- TED (Tree Edit Distance) ---
-
 class _Node:
-    """Узел дерева для zss: метка плюс дети."""
     def __init__(self, label, children=None):
         self.label = label
         self.children = children or []
 
 
 def _dict_to_tree(obj, label="root"):
-    """Превращает структуру чека (dict/list/значение) в дерево для TED."""
     node = _Node(label)
     if isinstance(obj, dict):
         for key in sorted(obj.keys()):
@@ -91,12 +69,9 @@ def _get_label(node):
 
 
 def tree_edit_distance(pred, ref):
-    """Нормированное TED между двумя структурами. 0 — идентичны, 1 — максимально далеки."""
     pred_tree = _dict_to_tree(pred if isinstance(pred, dict) else {})
     ref_tree = _dict_to_tree(ref)
-
     dist = zss.simple_distance(pred_tree, ref_tree, _get_children, _get_label)
-    # нормируем на размер эталонного дерева, чтобы метрика была в районе 0..1
     ref_size = _tree_size(ref_tree)
     return dist / ref_size if ref_size else 0.0
 
@@ -106,7 +81,6 @@ def _tree_size(node):
 
 
 def mean_ted(predictions, references):
-    """Среднее нормированное TED по всем чекам."""
     if not references:
         return 0.0
     total = sum(tree_edit_distance(p, r) for p, r in zip(predictions, references))

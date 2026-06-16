@@ -1,10 +1,4 @@
-"""Типизированная загрузка конфигурации: .env (секреты, окружение) + YAML (параметры).
-
-Использование:
-    from src.utils.config import settings, load_yaml_configs, get_configs
-    settings.database_url          # из .env
-    cfg = get_configs()
-    cfg.donut.base_model           # из configs/donut.yaml
+"""Типизированная загрузка конфигурации
 """
 from __future__ import annotations
 
@@ -17,9 +11,6 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# --------------------------------------------------------------------------
-# .env — секреты и параметры окружения
-# --------------------------------------------------------------------------
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -29,20 +20,16 @@ class Settings(BaseSettings):
     app_env: Literal["development", "production", "test"] = "development"
     app_host: str = "0.0.0.0"
     app_port: int = 8000
-
     # Security
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     password_hash_scheme: Literal["argon2", "bcrypt"] = "argon2"
-
     # Database
     database_url: str = "sqlite:///./data/receipt_ai.db"
-
     # Uploads
     upload_dir: Path = Path("./data/uploads")
     max_upload_mb: int = 15
-
     # Email
     smtp_host: str = ""
     smtp_port: int = 587
@@ -50,11 +37,9 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "noreply@receipt-ai.local"
     email_backend: Literal["console", "smtp"] = "console"
-
     # Rate limiting
     login_max_attempts: int = 5
     login_window_seconds: int = 300
-
     # Configs
     configs_dir: Path = Path("./configs")
 
@@ -67,9 +52,6 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 
-# --------------------------------------------------------------------------
-# YAML — параметры моделей и приложения (типизированные схемы)
-# --------------------------------------------------------------------------
 class DetectorTargets(BaseModel):
     successful_alignment: float = 0.90
 
@@ -89,6 +71,7 @@ class DetectorConfig(BaseModel):
     input_size: int = 640
     fallback: DetectorFallback = Field(default_factory=DetectorFallback)
     targets: DetectorTargets = Field(default_factory=DetectorTargets)
+
 
 class DonutInference(BaseModel):
     num_beams: int = 1
@@ -196,7 +179,6 @@ class AppConfig(BaseModel):
 
 
 class Configs(BaseModel):
-    """Корневой объект со всеми YAML-конфигами."""
     app: AppConfig = Field(default_factory=AppConfig)
     detector: DetectorConfig = Field(default_factory=DetectorConfig)
     donut: DonutConfig = Field(default_factory=DonutConfig)
@@ -212,11 +194,6 @@ def _read_yaml(path: Path) -> dict:
 
 @lru_cache
 def get_configs(configs_dir: str | None = None) -> Configs:
-    """Читает все YAML из configs_dir и собирает типизированный объект.
-
-    Каждый YAML имеет верхнеуровневый ключ (app/detector/donut/categorizer),
-    который разворачивается в соответствующую под-схему.
-    """
     base = Path(configs_dir or settings.configs_dir)
     app_raw = _read_yaml(base / "app.yaml")
     return Configs(
@@ -229,5 +206,4 @@ def get_configs(configs_dir: str | None = None) -> Configs:
     )
 
 
-# Удобный синглтон
 configs = get_configs()

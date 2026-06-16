@@ -1,4 +1,4 @@
-"""Тесты основных роутов: загрузка/CRUD чеков и аналитика."""
+"""Тесты основных роутов"""
 from __future__ import annotations
 
 
@@ -6,16 +6,13 @@ def _upload(client, headers, image_upload):
     return client.post("/receipts", headers=headers, files=image_upload())
 
 
-# --------------------------------------------------------------------------
-# Чеки
-# --------------------------------------------------------------------------
 def test_upload_receipt_runs_pipeline(client, auth_headers, image_upload):
     r = _upload(client, auth_headers, image_upload)
     assert r.status_code == 201, r.text
     body = r.json()
     assert body["merchant"] == "Пятёрочка"
     assert body["status"] == "ok"
-    assert body["purchase_date"] == "2026-06-01"  # ISO-строка из пайплайна -> date
+    assert body["purchase_date"] == "2026-06-01"
     assert len(body["items"]) == 1
     assert body["items"][0]["good"] == "молоко"
 
@@ -71,7 +68,7 @@ def test_review_replaces_items(client, auth_headers, image_upload):
     assert r.status_code == 200
     body = r.json()
     assert body["merchant"] == "Лента"
-    assert len(body["items"]) == 2  # старая позиция заменена двумя новыми
+    assert len(body["items"]) == 2
     names = {it["name"] for it in body["items"]}
     assert names == {"Хлеб", "Сыр"}
 
@@ -82,9 +79,6 @@ def test_delete_receipt(client, auth_headers, image_upload):
     assert client.get(f"/receipts/{rid}", headers=auth_headers).status_code == 404
 
 
-# --------------------------------------------------------------------------
-# Аналитика
-# --------------------------------------------------------------------------
 def test_summary_after_upload(client, auth_headers, image_upload):
     _upload(client, auth_headers, image_upload)
     body = client.get("/analytics/summary", headers=auth_headers).json()

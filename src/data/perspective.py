@@ -1,8 +1,6 @@
 """Поиск чека на фото и выпрямление перспективы.
-Резервный (не нейросетевой) метод детекции: ищем самый крупный
-четырёхугольный контур и разворачиваем его в прямоугольник. Используется
-как запасной путь, когда обученный детектор недоступен или не сработал,
-и как инструмент выравнивания после детекции.
+Резервный метод детекции: ищем самый крупный
+четырёхугольный контур и разворачиваем его в прямоугольник.
 """
 from __future__ import annotations
 
@@ -57,12 +55,8 @@ def _largest_quad_from_mask(mask):
 
 
 def find_receipt_contour(gray):
-    """Выделяет чек как светлый объект на фоне через бинаризацию Оцу,
-    затем берёт контур крупнейшей светлой области. Возвращает 4 точки или None.
-    """
     blurred = cv2.GaussianBlur(gray, (7, 7), 0)
     _, mask = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    # Замыкаем мелкие дыры внутри чека, чтобы он стал сплошным пятном
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE,
                             np.ones((15, 15), np.uint8), iterations=2)
     quad, _ = _largest_quad_from_mask(mask)
@@ -70,23 +64,14 @@ def find_receipt_contour(gray):
 
 
 def detect_and_warp(image, min_area_ratio=0.15):
-    """Находит чек и выпрямляет его. Если подходящей области нет, возвращает исходник.
-    Однотонные изображения (без какого-либо содержимого) отсекаются по
-    отсутствию разброса яркости: на них выделять нечего.
-    Возвращает кортеж (изображение, найден_ли_чек).
-    """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
-    # Однотонный кадр: выделять нечего, это не фото чека
     if gray.std() < 5:
         return image, False
-
     quad = find_receipt_contour(gray)
     if quad is None:
         return image, False
-
     area_ratio = cv2.contourArea(quad) / (image.shape[0] * image.shape[1])
     if area_ratio < min_area_ratio:
         return image, False
-
     warped = four_point_transform(image, quad)
     return warped, True

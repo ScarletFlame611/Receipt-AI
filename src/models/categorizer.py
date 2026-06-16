@@ -1,6 +1,4 @@
-# Категоризатор трат: правила по магазину → BERT по сигнатуре → "Прочее".
-# Правила идут первыми: известную сеть классифицируем мгновенно и точно,
-# не нагружая модель. Модель — для всего, что правила не покрыли.
+# Категоризатор трат
 from __future__ import annotations
 
 from pathlib import Path
@@ -21,7 +19,6 @@ def _resolve(path):
 
 
 def _build_shop_rules():
-    # Словарь "магазин в нижнем регистре → категория" из тех же справочников
     rules = {}
     for category, shops in SHOPS.items():
         for shop in shops:
@@ -45,7 +42,6 @@ class SpendingCategorizer:
         if not company:
             return None
         low = company.lower().strip()
-        # Точное совпадение, затем вхождение известной сети в строку
         if low in self.shop_rules:
             return self.shop_rules[low]
         for shop, category in self.shop_rules.items():

@@ -20,12 +20,6 @@ sroie_tag_names = [
 
 
 def decode_sroie_tags(words, ner_tags):
-    """Собирает поля чека из слов и их BIO-тегов.
-
-    Слова с тегами B-COMPANY/I-COMPANY склеиваются в название магазина,
-    аналогично для даты, адреса и суммы. Возвращает словарь с полями
-    и полным текстом чека.
-    """
     fields = {"company": [], "date": [], "address": [], "total": []}
 
     for word, tag in zip(words, ner_tags):
@@ -43,16 +37,13 @@ def decode_sroie_tags(words, ner_tags):
 
 
 def load_cord():
-    """Читает CORD из кэша HuggingFace. DatasetDict со сплитами train/validation/test."""
     return load_dataset("naver-clova-ix/cord-v2")
 
 
 def load_sroie():
-    """Читает SROIE из кэша HuggingFace. DatasetDict со сплитами train/test."""
     return load_dataset("darentang/sroie", revision="refs/convert/parquet")
 
 def _make_signature(shop, items):
-    # Вход модели — ровно то, что соберёт пайплайн: "магазин. товар, товар, ..."
     return f"{shop}. " + ", ".join(items)
 
 
@@ -65,7 +56,6 @@ def _gen_example(rng, label):
         pool = ITEMS[label]
     k = rng.randint(2, 6)
     items = rng.sample(pool, min(k, len(pool)))
-    # Иногда подмешиваем 1 шумовой товар, чтобы модель не цеплялась только за позиции
     if label != "Прочее" and rng.random() < 0.15:
         items.append(rng.choice(OTHER_ITEMS))
         rng.shuffle(items)
@@ -79,7 +69,6 @@ def generate_categorizer_dataset(per_class=500, seed=42):
     for label in labels:
         seen = set()
         made = 0
-        # Тянем уникальные сигнатуры, чтобы не плодить дубли
         while made < per_class:
             ex = _gen_example(rng, label)
             if ex["text"] in seen:

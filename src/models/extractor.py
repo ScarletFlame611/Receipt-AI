@@ -32,7 +32,6 @@ def _pick_device():
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 
-# Поля чека — наша дообученная на SROIE модель (магазин/дата/адрес/сумма)
 class FieldExtractor:
     def __init__(self, weights_path=None, max_length=None):
         cfg = configs.donut.fields
@@ -83,7 +82,6 @@ class FieldExtractor:
         return {f: parsed.get(f) if isinstance(parsed, dict) else None for f in field_order}
 
 
-# Позиции — исходная CORD-модель из коробки, режим <s_cord-v2> отдаёт menu
 class ItemsExtractor:
     def __init__(self, max_length=None):
         self.max_length = max_length or configs.donut.items.max_length
@@ -126,14 +124,13 @@ class ItemsExtractor:
         return _parse_cord_menu(parsed)
 
 
-# CORD кладёт позиции в menu; поля называются nm (название), cnt (кол-во), price
 def _parse_cord_menu(parsed):
     if not isinstance(parsed, dict):
         return []
     menu = parsed.get("menu")
     if menu is None:
         return []
-    if isinstance(menu, dict):  # один товар CORD отдаёт не списком, а объектом
+    if isinstance(menu, dict):
         menu = [menu]
     items = []
     for entry in menu:
@@ -150,7 +147,6 @@ def _parse_cord_menu(parsed):
     return items
 
 
-# Количество — простое число, не денежная сумма, поэтому без локали
 def _to_number(raw):
     if raw is None:
         return None
@@ -163,8 +159,6 @@ def _to_number(raw):
         return None
 
 
-# Резерв: позиции из OCR-строк, когда CORD-модель вернула пусто/мусор.
-# Берём строки, где есть и текст, и цена в конце.
 _price_re = re.compile(r"(.+?)\s+(\d+[.,]\d{2})\s*$")
 
 
@@ -182,7 +176,6 @@ def parse_items_from_ocr(ocr_lines):
     return items
 
 
-# Общий вход: склеивает поля и позиции, позиции с резервом на OCR
 class ReceiptExtractor:
     def __init__(self, weights_path=None):
         self.fields = FieldExtractor(weights_path)

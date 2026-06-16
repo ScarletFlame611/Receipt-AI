@@ -1,8 +1,4 @@
 """Инференс-обёртка детектора чека.
-
-Основной путь — обученная YOLOv8: находит чек, берёт самую уверенную рамку,
-обрезает по ней. Если YOLO не нашла чек выше порога уверенности, откат на
-контурный метод из Блока 2. Настройки читаются из configs/detector.yaml.
 """
 from __future__ import annotations
 
@@ -16,7 +12,6 @@ from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-# Корень проекта: src/models/detector.py -> поднимаемся на три уровня
 project_root = Path(__file__).resolve().parent.parent.parent
 
 
@@ -43,11 +38,6 @@ class ReceiptDetector:
         return self._model
 
     def detect(self, image):
-        """Находит чек на изображении (numpy BGR).
-
-        Возвращает (обрезанное_изображение, метод), где метод —
-        'yolo', 'contour' или 'none'. При неудаче возвращает исходник.
-        """
         model = self._load_model()
 
         if model is not None:

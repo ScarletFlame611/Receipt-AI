@@ -1,7 +1,4 @@
-"""Отправка писем. Два бэкенда: console (по умолчанию, печатает в лог) и smtp.
-
-В dev/тестах письмо просто пишется в лог — внешний SMTP не нужен. Тело письма
-не содержит пароля, только одноразовый токен сброса.
+"""Отправка писем
 """
 from __future__ import annotations
 
@@ -15,7 +12,6 @@ logger = get_logger(__name__)
 
 
 def send_email(to: str, subject: str, body: str) -> None:
-    """Отправляет письмо выбранным в конфиге бэкендом."""
     if settings.email_backend == "smtp" and settings.smtp_host:
         _send_smtp(to, subject, body)
     else:
@@ -38,7 +34,6 @@ def _send_smtp(to: str, subject: str, body: str) -> None:
 
 
 def send_password_reset(to: str, token: str) -> None:
-    """Письмо со ссылкой/токеном сброса пароля."""
     body = (
         "Вы запросили сброс пароля в Receipt-AI.\n\n"
         f"Токен для сброса: {token}\n\n"

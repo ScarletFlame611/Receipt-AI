@@ -5,10 +5,8 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Optional
-
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
-
 from src.db import models
 
 
@@ -108,11 +106,6 @@ def list_categories(db: Session) -> list[models.Category]:
 
 
 def summary_by_category(db: Session, user_id: int) -> list[dict]:
-    """Траты по категории ЧЕКА (receipt_type), а не по категории товара.
-
-    Категория чека проставляется категоризатором (см. pipeline), тогда как
-    item.category_id почти всегда пуст — поэтому разбивка строится по чекам.
-    """
     rows = db.execute(
         select(models.Receipt.receipt_type, func.sum(models.Receipt.total))
         .where(
@@ -144,12 +137,8 @@ def spending_total(db: Session, user_id: int) -> float:
 
 
 def review_receipt(
-    db: Session, user_id: int, receipt_id: int, fields: dict, items: list[dict]
+        db: Session, user_id: int, receipt_id: int, fields: dict, items: list[dict]
 ) -> Optional[models.Receipt]:
-    """Ручная правка: обновляет шапку и ПОЛНОСТЬЮ заменяет позиции.
-
-    Изоляция по user_id: чужой чек не найдётся и вернётся None.
-    """
     receipt = get_receipt(db, user_id, receipt_id)
     if receipt is None:
         return None
@@ -157,8 +146,6 @@ def review_receipt(
     for key, value in fields.items():
         if value is not None and hasattr(receipt, key):
             setattr(receipt, key, value)
-
-    # Полная замена позиций — старые удаляем, новые добавляем.
     for old in list(receipt.items):
         db.delete(old)
     db.flush()
@@ -178,10 +165,6 @@ def review_receipt(
 
 
 def spending_timeline(db: Session, user_id: int) -> list[dict]:
-    """Динамика трат по месяцам (по дате покупки, иначе дате загрузки).
-
-    Агрегируем в Python, чтобы не зависеть от диалекта БД (sqlite/postgres).
-    """
     rows = db.execute(
         select(models.Receipt.purchase_date, models.Receipt.created_at, models.Receipt.total)
         .where(models.Receipt.user_id == user_id)
@@ -216,8 +199,6 @@ def top_merchants(db: Session, user_id: int, limit: int = 10) -> list[dict]:
 
 
 def top_goods(db: Session, user_id: int, limit: int = 10) -> list[dict]:
-    """Самые частые товары пользователя: считаем по нормализованному названию
-    (good, иначе name), сколько раз встречался и на какую сумму."""
     label = func.coalesce(models.Item.good, models.Item.name)
     rows = db.execute(
         select(label, func.count(models.Item.id), func.sum(models.Item.price))
@@ -233,9 +214,6 @@ def top_goods(db: Session, user_id: int, limit: int = 10) -> list[dict]:
     ]
 
 
-# --------------------------------------------------------------------------
-# Бюджеты
-# --------------------------------------------------------------------------
 def list_budgets(db: Session, user_id: int) -> list[models.Budget]:
     return db.execute(
         select(models.Budget).where(models.Budget.user_id == user_id)
@@ -243,8 +221,8 @@ def list_budgets(db: Session, user_id: int) -> list[models.Budget]:
 
 
 def create_budget(
-    db: Session, user_id: int, limit_amount: Decimal,
-    category_id: Optional[int] = None, period: str = "monthly",
+        db: Session, user_id: int, limit_amount: Decimal,
+        category_id: Optional[int] = None, period: str = "monthly",
 ) -> models.Budget:
     budget = models.Budget(
         user_id=user_id, category_id=category_id,
@@ -269,9 +247,6 @@ def delete_budget(db: Session, user_id: int, budget_id: int) -> bool:
     return True
 
 
-# --------------------------------------------------------------------------
-# Цели
-# --------------------------------------------------------------------------
 def list_goals(db: Session, user_id: int) -> list[models.Goal]:
     return db.execute(
         select(models.Goal).where(models.Goal.user_id == user_id)
@@ -279,8 +254,8 @@ def list_goals(db: Session, user_id: int) -> list[models.Goal]:
 
 
 def create_goal(
-    db: Session, user_id: int, title: str,
-    target_amount: Decimal, deadline: Optional[date] = None,
+        db: Session, user_id: int, title: str,
+        target_amount: Decimal, deadline: Optional[date] = None,
 ) -> models.Goal:
     goal = models.Goal(
         user_id=user_id, title=title,
@@ -321,9 +296,6 @@ def delete_goal(db: Session, user_id: int, goal_id: int) -> bool:
     return True
 
 
-# --------------------------------------------------------------------------
-# Сброс пароля
-# --------------------------------------------------------------------------
 def create_reset_token(db: Session, user_id: int, ttl_minutes: int = 30) -> models.PasswordResetToken:
     token = models.PasswordResetToken(
         user_id=user_id,
@@ -360,9 +332,6 @@ def consume_reset_token(db: Session, token_obj: models.PasswordResetToken) -> No
     db.commit()
 
 
-# --------------------------------------------------------------------------
-# Админка
-# --------------------------------------------------------------------------
 def list_users(db: Session, limit: int = 100, offset: int = 0) -> list[models.User]:
     return db.execute(
         select(models.User)

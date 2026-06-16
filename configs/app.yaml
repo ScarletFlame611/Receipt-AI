@@ -1,5 +1,4 @@
 # Настройки приложения, БД и загрузок.
-# Секреты сюда НЕ пишем — они в .env. Здесь только несекретные дефолты.
 app:
   name: "Receipt-AI"
   version: "1.0"
@@ -12,6 +11,5 @@ uploads:
   max_upload_mb: 15
 
 pipeline:
-  # Полная обработка одного чека — ориентир до 10 сек на CPU (ТЗ, разд. 11)
   target_latency_seconds: 10
   default_category: "Прочее"

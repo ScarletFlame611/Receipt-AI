@@ -1,14 +1,10 @@
-"""Роуты администратора: список пользователей, блокировка, метрики системы.
-
-Весь роутер защищён require_admin — доступ только пользователям с is_admin.
+"""Роуты администратора
 """
 from __future__ import annotations
 
 from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from src.api.dependencies import AdminUser, get_db, require_admin
 from src.db import crud, schemas
 

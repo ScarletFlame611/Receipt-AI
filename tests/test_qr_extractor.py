@@ -1,4 +1,4 @@
-"""Разбор фискальной строки QR-кода чека (parse_payload)."""
+"""Разбор фискальной строки QR-кода чека """
 from src.models.qr_extractor import parse_payload
 
 
@@ -23,7 +23,6 @@ def test_parse_with_seconds_in_time():
 
 
 def test_parse_unparseable_time_keeps_total():
-    # дата кривая, но сумма есть — поле total не теряем, date=None
     p = parse_payload("t=BADDATE&s=116.70")
     assert p is not None
     assert p["date"] is None
@@ -31,7 +30,6 @@ def test_parse_unparseable_time_keeps_total():
 
 
 def test_non_receipt_payload_rejected():
-    # обычный URL/текст — не фискальный чек
     assert parse_payload("https://example.com") is None
     assert parse_payload("") is None
     assert parse_payload(None) is None

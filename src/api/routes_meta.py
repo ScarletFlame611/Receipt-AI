@@ -1,11 +1,9 @@
-"""Справочные роуты для фронтенда: список категорий (для дропдаунов и подписей)."""
+"""Справочные роуты для фронтенда"""
 from __future__ import annotations
 
 from typing import Annotated
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from src.api.dependencies import CurrentUser, get_db
 from src.db import crud, schemas
 

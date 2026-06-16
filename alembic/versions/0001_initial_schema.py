@@ -1,26 +1,18 @@
 """Начальная схема: 7 таблиц (users, categories, receipts, items, budgets,
 goals, password_reset_tokens).
-
-Revision ID: 0001
-Revises:
-Create Date: 2026-06-11
-
 """
 from __future__ import annotations
 
 from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
 
-# revision identifiers, used by Alembic.
 revision: str = "0001"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-
-# Статус чека. На PostgreSQL станет ENUM-типом, на SQLite — VARCHAR + CHECK.
+# Статус чека
 receipt_status = sa.Enum("ok", "needs_review", "failed", name="receipt_status")
 
 
@@ -129,22 +121,15 @@ def downgrade() -> None:
     op.drop_index("ix_password_reset_tokens_token", table_name="password_reset_tokens")
     op.drop_index("ix_password_reset_tokens_user_id", table_name="password_reset_tokens")
     op.drop_table("password_reset_tokens")
-
     op.drop_index("ix_goals_user_id", table_name="goals")
     op.drop_table("goals")
-
     op.drop_index("ix_budgets_user_id", table_name="budgets")
     op.drop_table("budgets")
-
     op.drop_index("ix_items_receipt_id", table_name="items")
     op.drop_table("items")
-
     op.drop_index("ix_receipts_user_id", table_name="receipts")
     op.drop_table("receipts")
-    # На PostgreSQL ENUM-тип нужно удалить явно (на SQLite — no-op).
     receipt_status.drop(op.get_bind(), checkfirst=True)
-
     op.drop_table("categories")
-
     op.drop_index("ix_users_email", table_name="users")
     op.drop_table("users")

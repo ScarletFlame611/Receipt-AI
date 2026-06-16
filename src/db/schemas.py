@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
-
 from pydantic import BaseModel, EmailStr, ConfigDict
 
 
@@ -27,7 +26,6 @@ class Token(BaseModel):
 
 
 class MessageOut(BaseModel):
-    """Простой ответ-подтверждение для действий без полезной нагрузки."""
     detail: str
 
 
@@ -79,7 +77,6 @@ class ReceiptUpdate(BaseModel):
 
 
 class ItemIn(BaseModel):
-    """Позиция чека при ручной правке."""
     name: str
     good: Optional[str] = None
     brand: Optional[str] = None
@@ -89,11 +86,6 @@ class ItemIn(BaseModel):
 
 
 class ReceiptReview(BaseModel):
-    """Ручная правка чека: поля шапки + полная замена списка позиций.
-
-    Пользователь подтверждает/исправляет распознанное; статус по умолчанию
-    переводится в ``ok``, но его можно задать явно.
-    """
     merchant: Optional[str] = None
     purchase_date: Optional[date] = None
     total: Optional[Decimal] = None
@@ -138,9 +130,6 @@ class GoalOut(BaseModel):
     deadline: Optional[date] = None
 
 
-# --------------------------------------------------------------------------
-# Аналитика
-# --------------------------------------------------------------------------
 class CategorySpending(BaseModel):
     category: Optional[str] = None
     total: float
@@ -169,9 +158,6 @@ class SpendingSummary(BaseModel):
     by_category: list[CategorySpending]
 
 
-# --------------------------------------------------------------------------
-# Админка
-# --------------------------------------------------------------------------
 class SystemMetrics(BaseModel):
     users_total: int
     users_active: int

@@ -1,20 +1,14 @@
 """Окружение Alembic.
-
-URL берётся из настроек приложения (а не из alembic.ini), поэтому миграции
-одинаково работают на dev (SQLite) и prod (PostgreSQL). Для SQLite включён
-batch-режим — иначе ALTER TABLE в будущих миграциях работать не будет.
+URL берётся из настроек приложения, поэтому миграции
+одинаково работают на dev (SQLite) и prod (PostgreSQL).
 """
 from __future__ import annotations
-
 import sys
 from logging.config import fileConfig
 from pathlib import Path
-
 from sqlalchemy import engine_from_config, pool
-
 from alembic import context
 
-# Корень проекта в sys.path, чтобы импортировать src.* при запуске alembic.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
